@@ -6,10 +6,11 @@ use warnings;
 use Term::ProgressBar::Quiet;
 
 use overload    #
-  '++' => \&increment;    #
+  '++' => \&increment,    #
+  '+=' => \&increment;    #
                           # '--' => \&decrement; # add later
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 =head1 NAME
 
@@ -33,6 +34,8 @@ Term::ProgressBar::Simple - simpler progress bars
         # increment the progress bar object to tell it a step has been taken.
         $progress++;
     }
+
+    # See also use of '$progress += $number' later in pod
 
 =head1 DESCRIPTION
 
@@ -110,12 +113,33 @@ sub new {
 Incrementing the object causes the progress display to be updated. It is smart
 about checking to see if the display needs to be updated.
 
+=head2 increment ( += )
+
+    $progress += $number_done;
+
+Sometimes you'll have done more than one step between updates. A good example is
+processing logfiles, where the time taken is relative to the size of the file.
+In this case code like this would give a better feel for the progress made:
+
+    # Get the total size of all the files
+    my $total_size = sum map { -s } @filenames;
+
+    # Set up object with total size as steps to do
+    my $progress = Term::ProgressBar::Simple->new($total_size);
+
+    # process each file and increment by the size of each file
+    foreach my $filename (@filenames) {
+        process_the_file($filename);
+        $progress += -s $filename;
+    }
+
 =cut
 
 sub increment {
     my $self = shift;
+    my $increment = shift || 1;
 
-    $self->{count_so_far}++;
+    $self->{count_so_far} += $increment;
     my $now = $self->{count_so_far};
 
     if ( $now >= $self->{next_update} ) {
@@ -168,9 +192,13 @@ Patches welcome.
 
 =head1 THANKS
 
-Leon Brocard for doing the hard work in L<Term::ProgressBar::Quiet>.
+Martyn J. Pearce for the orginal and great L<Term::ProgressBar>.
 
-YAPC::EU::2008 for providing the venue and coffee.
+Leon Brocard for doing the hard work in L<Term::ProgressBar::Quiet>, and for
+submitting a patch with the code for C<+=>..
+
+YAPC::EU::2008 for providing the venue and coffee whilst the first version of
+this module was written.
 
 =head1 AUTHOR
 
@@ -180,7 +208,7 @@ L<http://www.ecclestoad.co.uk/>
 
 =head1 BUGS
 
-There are no tests - ther should be. The smart way would be to trap the output
+There are no tests - there should be. The smart way would be to trap the output
 and check it is right.
 
 =head1 LICENCE AND COPYRIGHT
