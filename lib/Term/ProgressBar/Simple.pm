@@ -10,7 +10,7 @@ use overload    #
   '+=' => \&increment;    #
                           # '--' => \&decrement; # add later
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 =head1 NAME
 
@@ -147,6 +147,20 @@ sub increment {
     }
 
     return $self;
+}
+
+=head2 message
+
+    $progress->message('Copying $filename');
+
+Output a message. This is very much like print, but we try not to
+disturb the terminal.
+
+=cut
+
+sub message {
+    my($self, $message) = @_;
+    $self->{tpq}->message($message);
 }
 
 # want to add this in a later version.
